@@ -16,7 +16,8 @@ dist-ssr
 .env
 .env.*
 
-# Claude Code local skills
+# Claude Code local settings and skills
+.claude/
 skills/
 
 # Editor directories and files
