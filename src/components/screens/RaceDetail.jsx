@@ -25,6 +25,7 @@ import AppShell from '../layout/AppShell'
 import CountryFlag from '../ui/CountryFlag'
 import FlagRating from '../ui/FlagRating'
 import Toggle from '../ui/Toggle'
+import CheckeredFlag from '../ui/CheckeredFlag'
 import { useAuth } from '../../hooks/useAuth'
 import { useRaceResults } from '../../hooks/useSeasonData'
 import { useRaceLogs } from '../../hooks/useRaceLogs'
@@ -115,6 +116,8 @@ const { logs, saveLog }                     = useRaceLogs(user)
   const [watchedLive, setWatchedLive]   = useState(false)
   const [saving, setSaving]             = useState(false)
   const [saveError, setSaveError]       = useState(null)
+  const [showToast, setShowToast]       = useState(false)
+  const [toastVisible, setToastVisible] = useState(false)
 
   // When log data loads, seed edit state and determine initial mode
   useEffect(() => {
@@ -156,6 +159,17 @@ const { logs, saveLog }                     = useRaceLogs(user)
       setSaveError(error.message)
     } else {
       setEditing(false)
+      // Trigger toast
+      setShowToast(true)
+      // Defer the visible class by one frame so the transition fires
+      requestAnimationFrame(() => {
+        setToastVisible(true)
+      })
+      // Auto-dismiss: wait 2200ms, then fade out, then unmount
+      setTimeout(() => {
+        setToastVisible(false)
+        setTimeout(() => setShowToast(false), 300) // matches exit duration-300
+      }, 2200)
     }
   }
 
@@ -337,6 +351,30 @@ const { logs, saveLog }                     = useRaceLogs(user)
           )}
         </div>
       </div>
+
+      {/* Save feedback toast */}
+      {showToast && (
+        <div
+          aria-live="polite"
+          aria-atomic="true"
+          className="pointer-events-none fixed bottom-[88px] left-0 right-0 flex justify-center z-40 px-4"
+        >
+          <div
+            className={[
+              'flex items-center gap-2 px-4 py-2.5 rounded-xl',
+              'transition-all duration-300',
+              theme === 'dark'
+                ? 'bg-tarmac border border-white/10 text-concrete'
+                : 'bg-concrete border border-black/8 text-tarmac',
+              toastVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
+            ].join(' ')}
+          >
+            <CheckeredFlag size={16} filled gold />
+            <span className="text-[13px] font-medium">Lap logged.</span>
+            <CheckeredFlag size={16} filled gold />
+          </div>
+        </div>
+      )}
     </AppShell>
   )
 }

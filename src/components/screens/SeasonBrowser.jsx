@@ -10,7 +10,8 @@
  *   Progress row — amber bar + "X / Y logged" label
  *   Vertical timeline of RaceCards, chronological
  */
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from 'react-router-dom'
 import AppShell from '../layout/AppShell'
 import CountryFlag from '../ui/CountryFlag'
@@ -19,6 +20,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useSeasonRaces } from '../../hooks/useSeasonData'
 import { useRaceLogs } from '../../hooks/useRaceLogs'
 import { useTheme } from '../../hooks/useTheme'
+import { SUGGESTED_RACES } from '../../data/suggestedRaces'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -50,8 +52,61 @@ function CircuitSketch({ dimmed = false }) {
   )
 }
 
+// ─── SuggestedRacesStrip ──────────────────────────────────────────────────────
+function SuggestedRacesStrip({ theme, onSelect }) {
+  return (
+    <div className="px-4 mb-5">
+      <p className="text-[11px] text-gravel mb-2">where to start</p>
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 [&::-webkit-scrollbar]:hidden">
+        {SUGGESTED_RACES.map(race => (
+          <button
+            key={`${race.season}-${race.round}`}
+            type="button"
+            onClick={() => onSelect(race.season, race.round)}
+            className={[
+              'flex-shrink-0 w-[120px] rounded-xl p-3 text-left',
+              'transition-[filter,transform] duration-150 hover:brightness-[1.08] active:scale-[0.98]',
+              theme === 'dark' ? 'bg-[#242424]' : 'bg-[#ECEAE4]',
+            ].join(' ')}
+          >
+            <div className="mb-2">
+              <CountryFlag country={race.country} size="sm" />
+            </div>
+            <p className="text-[11px] font-medium leading-tight line-clamp-2">
+              {race.raceName}
+            </p>
+            <p className="text-[10px] text-gravel mt-0.5">{race.season}</p>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── MilestoneToast ───────────────────────────────────────────────────────────
+function MilestoneToast({ theme, onDismiss }) {
+  return createPortal(
+    <div className="fixed bottom-24 inset-x-4 z-[70] flex justify-center pointer-events-none">
+      <button
+        type="button"
+        onClick={onDismiss}
+        className={[
+          'pointer-events-auto flex items-center gap-2 px-4 py-3 rounded-xl',
+          'text-[13px] font-medium',
+          'border border-amber/30',
+          theme === 'dark' ? 'bg-[#2A2A2A] text-white' : 'bg-white text-tarmac',
+        ].join(' ')}
+      >
+        <span className="text-amber text-[16px] leading-none">●</span>
+        <span>you're on a roll! 3 races logged.</span>
+      </button>
+    </div>,
+    document.body
+  )
+}
+
 // ─── RaceCard ─────────────────────────────────────────────────────────────────
-function RaceCard({ race, log, theme, isUpcoming, onClick }) {
+function RaceCard({ race, log, theme, isUpcoming, onClick, showPulse = false }) {
   const isLogged   = !!log
   const isFiveStar = log?.rating === 5
 
@@ -73,6 +128,7 @@ function RaceCard({ race, log, theme, isUpcoming, onClick }) {
       onClick={onClick}
       className={[
         'relative w-full text-left rounded-xl p-3 flex flex-col gap-1 overflow-hidden',
+        'group cursor-pointer transition-[filter,transform] duration-150 hover:brightness-[1.08] active:scale-[0.98]',
         bg,
         ring,
       ].join(' ')}
@@ -116,10 +172,11 @@ function RaceCard({ race, log, theme, isUpcoming, onClick }) {
         {!isLogged && (
           <span
             className={[
-              'flex items-center justify-center w-[18px] h-[18px] rounded-full border text-[12px] leading-none',
+              'flex items-center justify-center w-[18px] h-[18px] rounded-full border text-[12px] leading-none transition-colors duration-150',
               theme === 'dark'
-                ? 'border-white/20 text-white/30'
-                : 'border-black/15 text-black/25',
+                ? 'border-white/20 text-white/30 group-hover:border-amber/40 group-hover:text-amber/50'
+                : 'border-black/15 text-black/25 group-hover:border-amber/50 group-hover:text-amber/60',
+              showPulse ? 'animate-pulse' : '',
             ].join(' ')}
           >
             +
@@ -141,9 +198,13 @@ export default function SeasonBrowser() {
   const { theme }       = useTheme()
 
   const [season, setSeason] = useState(location.state?.season ?? CURRENT_YEAR)
+  const [showMilestone, setShowMilestone] = useState(false)
+  const [hasDismissedMilestone, setHasDismissedMilestone] = useState(false)
 
   const { races, loading: racesLoading } = useSeasonRaces(season)
-  const { logs }                          = useRaceLogs(user)
+  const { logs, loading: logsLoading }    = useRaceLogs(user)
+
+  const prevLogCountRef = useRef(logs.length)
 
   // Build a fast lookup: "season-round" → log
   const logMap = useMemo(() => {
@@ -165,6 +226,29 @@ export default function SeasonBrowser() {
     today.setHours(0, 0, 0, 0)
     return races.findIndex(r => r.date && new Date(r.date + 'T00:00:00') >= today)
   }, [races])
+
+  // Detect 2→3 log transition for milestone toast
+  useEffect(() => {
+    const prev = prevLogCountRef.current
+    const curr = logs.length
+    if (!hasDismissedMilestone && prev === 2 && curr === 3) {
+      setShowMilestone(true)
+    }
+    prevLogCountRef.current = curr
+  }, [logs.length, hasDismissedMilestone])
+
+  // Auto-dismiss milestone toast after 4 seconds
+  useEffect(() => {
+    if (!showMilestone) return
+    const t = setTimeout(() => {
+      setShowMilestone(false)
+      setHasDismissedMilestone(true)
+    }, 4000)
+    return () => clearTimeout(t)
+  }, [showMilestone])
+
+  // Index of first unlogged race for pulse indicator
+  const firstUnloggedIndex = races.findIndex(r => !logMap[`${season}-${r.round}`])
 
   function prevSeason() { if (season > MIN_YEAR) setSeason(s => s - 1) }
   function nextSeason() { if (season < CURRENT_YEAR) setSeason(s => s + 1) }
@@ -210,6 +294,19 @@ export default function SeasonBrowser() {
           />
         </div>
       </div>
+
+      {/* Suggested races + empty state hint (first-time users) */}
+      {logs.length === 0 && !logsLoading && (
+        <>
+          <SuggestedRacesStrip
+            theme={theme}
+            onSelect={(s, r) => navigate(`/race/${s}/${r}`)}
+          />
+          <p className="px-4 mb-3 text-[12px] text-gravel text-center">
+            Tap a race card to log it
+          </p>
+        </>
+      )}
 
       {/* Timeline */}
       {racesLoading ? (
@@ -272,12 +369,24 @@ export default function SeasonBrowser() {
                     theme={theme}
                     isUpcoming={isUpcoming}
                     onClick={() => navigate(`/race/${season}/${race.round}`)}
+                    showPulse={logs.length === 0 && !logsLoading && idx === firstUnloggedIndex}
                   />
                 </div>
               </div>
             )
           })}
         </div>
+      )}
+
+      {/* Milestone toast (3rd log celebration) */}
+      {showMilestone && (
+        <MilestoneToast
+          theme={theme}
+          onDismiss={() => {
+            setShowMilestone(false)
+            setHasDismissedMilestone(true)
+          }}
+        />
       )}
     </AppShell>
   )

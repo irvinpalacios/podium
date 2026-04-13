@@ -14,9 +14,12 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Logo from '../ui/Logo'
 import Toggle from '../ui/Toggle'
+import SearchModal from '../ui/SearchModal'
 import { useAuth } from '../../hooks/useAuth'
 import { useTheme } from '../../hooks/useTheme'
 import { useProfile } from '../../hooks/useProfile'
+import { useRaceLogs } from '../../hooks/useRaceLogs'
+import { useSearchData } from '../../hooks/useSearchData'
 
 export default function Header({ theme = 'dark', user = null }) {
   const navigate = useNavigate()
@@ -27,9 +30,14 @@ export default function Header({ theme = 'dark', user = null }) {
   const [open, setOpen] = useState(false)
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
   const wrapperRef = useRef(null)
   const nameInputRef = useRef(null)
   const savingRef = useRef(false)
+
+  // Search feature hooks
+  const { logs, loading: logsLoading } = useRaceLogs(user)
+  const { allRaces, loading: searchLoading } = useSearchData({ logs, logsLoading })
 
   // Sync input value when profile loads or dropdown opens
   useEffect(() => {
@@ -69,6 +77,16 @@ export default function Header({ theme = 'dark', user = null }) {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [open])
 
+  // Global Escape key handler for search modal
+  useEffect(() => {
+    if (!searchOpen) return
+    function handleEscape(e) {
+      if (e.key === 'Escape') setSearchOpen(false)
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [searchOpen])
+
   return (
     <header className="flex items-center justify-between px-4 py-3">
       <div
@@ -83,20 +101,40 @@ export default function Header({ theme = 'dark', user = null }) {
       </div>
 
       {initial ? (
-        <div ref={wrapperRef} className="relative">
-          {/* Avatar button */}
+        <div className="flex items-center gap-3">
+          {/* Search icon */}
           <button
             type="button"
-            onClick={() => setOpen(v => !v)}
+            aria-label="Search races"
+            onClick={() => setSearchOpen(true)}
             className={[
-              'flex items-center justify-center w-7 h-7 rounded-full text-[11px] font-medium transition-opacity',
+              'flex items-center justify-center w-7 h-7 rounded-full transition-opacity',
               theme === 'dark'
-                ? 'bg-white/10 text-white/60 hover:bg-white/20'
-                : 'bg-black/8 text-black/50 hover:bg-black/14',
+                ? 'text-white/50 hover:text-white/80'
+                : 'text-black/40 hover:text-black/70',
             ].join(' ')}
           >
-            {initial}
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+              <circle cx="6.5" cy="6.5" r="4.5" />
+              <line x1="10" y1="10" x2="14" y2="14" />
+            </svg>
           </button>
+
+          {/* Avatar dropdown group */}
+          <div ref={wrapperRef} className="relative">
+            {/* Avatar button */}
+            <button
+              type="button"
+              onClick={() => setOpen(v => !v)}
+              className={[
+                'flex items-center justify-center w-7 h-7 rounded-full text-[11px] font-medium transition-opacity',
+                theme === 'dark'
+                  ? 'bg-white/10 text-white/60 hover:bg-white/20'
+                  : 'bg-black/8 text-black/50 hover:bg-black/14',
+              ].join(' ')}
+            >
+              {initial}
+            </button>
 
           {/* Dropdown */}
           {open && (
@@ -191,12 +229,22 @@ export default function Header({ theme = 'dark', user = null }) {
                 Sign out
               </button>
             </div>
-          )}
+            )}
+          </div>
         </div>
       ) : (
         // Placeholder spacer so Logo stays left-aligned on auth screen
         <div className="w-7 h-7" />
       )}
+
+      {/* Search modal */}
+      <SearchModal
+        isOpen={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        theme={theme}
+        allRaces={allRaces}
+        loading={searchLoading}
+      />
     </header>
   )
 }

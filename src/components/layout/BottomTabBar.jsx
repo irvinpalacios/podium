@@ -1,14 +1,20 @@
 /**
  * BottomTabBar
  *
- * Apple-style floating frosted-glass pill navigation bar.
+ * Apple-style floating frosted-glass pill navigation bar with sliding bubble.
  * Fixed to the bottom of the viewport, 16px from each edge.
  * Four equally-weighted tabs: Home, Seasons, Log, Profile.
+ *
+ * Features:
+ *   - Sliding translucent bubble that follows the active tab
+ *   - Spring-eased animation for smooth interaction
+ *   - Haptic feedback on tab selection (Web Vibration API)
+ *   - SF-Symbol-style icons with outline/filled variants
  *
  * Props
  *   theme ('dark' | 'light') — inherited from AppShell
  */
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 
 const TABS = [
   {
@@ -17,13 +23,11 @@ const TABS = [
     end: true,
     icon: ({ active }) => active ? (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M10.707 2.293a1 1 0 0 1 1.414 0l7.586 7.586A2 2 0 0 1 20 11.293V20a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-4H10v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8.707a2 2 0 0 1 .586-1.414l6.121-6.586z" />
+        <path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-5h-6v5H4a1 1 0 01-1-1V10.5z" />
       </svg>
     ) : (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 12L12 3l9 9" />
-        <path d="M9 21V12h6v9" />
-        <path d="M3 12v9h5v-5h8v5h5V12" />
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-5h-6v5H4a1 1 0 01-1-1V10.5z" />
       </svg>
     ),
   },
@@ -33,17 +37,23 @@ const TABS = [
     end: false,
     icon: ({ active }) => active ? (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <rect x="3" y="3" width="8" height="8" rx="1.5" />
-        <rect x="13" y="3" width="8" height="8" rx="1.5" />
-        <rect x="3" y="13" width="8" height="8" rx="1.5" />
-        <rect x="13" y="13" width="8" height="8" rx="1.5" />
+        <rect x="3" y="4" width="18" height="17" rx="2" />
+        <line x1="3" y1="9" x2="21" y2="9" stroke="currentColor" strokeWidth="1.5" />
+        <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="1.5" />
+        <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="8" cy="14" r="1" fill="currentColor" />
+        <circle cx="12" cy="14" r="1" fill="currentColor" />
+        <circle cx="16" cy="14" r="1" fill="currentColor" />
       </svg>
     ) : (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="8" height="8" rx="1.5" />
-        <rect x="13" y="3" width="8" height="8" rx="1.5" />
-        <rect x="3" y="13" width="8" height="8" rx="1.5" />
-        <rect x="13" y="13" width="8" height="8" rx="1.5" />
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="17" rx="2" />
+        <line x1="3" y1="9" x2="21" y2="9" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <circle cx="8" cy="14" r="1" fill="currentColor" />
+        <circle cx="12" cy="14" r="1" fill="currentColor" />
+        <circle cx="16" cy="14" r="1" fill="currentColor" />
       </svg>
     ),
   },
@@ -53,14 +63,21 @@ const TABS = [
     end: false,
     icon: ({ active }) => active ? (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <path fillRule="evenodd" clipRule="evenodd" d="M7 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H7zm1 5a1 1 0 0 1 1-1h6a1 1 0 0 1 0 2H9a1 1 0 0 1-1-1zm0 4a1 1 0 0 1 1-1h6a1 1 0 0 1 0 2H9a1 1 0 0 1-1-1zm0 4a1 1 0 0 1 1-1h4a1 1 0 0 1 0 2H9a1 1 0 0 1-1-1z" />
+        <circle cx="5" cy="7" r="1.5" />
+        <line x1="9" y1="7" x2="20" y2="7" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="5" cy="12" r="1.5" />
+        <line x1="9" y1="12" x2="20" y2="12" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="5" cy="17" r="1.5" />
+        <line x1="9" y1="17" x2="20" y2="17" stroke="currentColor" strokeWidth="1.5" />
       </svg>
     ) : (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="5" y="2" width="14" height="20" rx="2" />
-        <line x1="9" y1="7" x2="15" y2="7" />
-        <line x1="9" y1="11" x2="15" y2="11" />
-        <line x1="9" y1="15" x2="13" y2="15" />
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="5" cy="7" r="1.5" fill="currentColor" />
+        <line x1="9" y1="7" x2="20" y2="7" />
+        <circle cx="5" cy="12" r="1.5" fill="currentColor" />
+        <line x1="9" y1="12" x2="20" y2="12" />
+        <circle cx="5" cy="17" r="1.5" fill="currentColor" />
+        <line x1="9" y1="17" x2="20" y2="17" />
       </svg>
     ),
   },
@@ -70,13 +87,13 @@ const TABS = [
     end: false,
     icon: ({ active }) => active ? (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <circle cx="12" cy="8" r="4" />
-        <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" />
+        <circle cx="12" cy="8" r="3.5" />
+        <path d="M4 20c0-3.866 3.582-7 8-7s8 3.134 8 7" />
       </svg>
     ) : (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="8" r="4" />
-        <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" />
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="8" r="3.5" />
+        <path d="M4 20c0-3.866 3.582-7 8-7s8 3.134 8 7" />
       </svg>
     ),
   },
@@ -84,6 +101,13 @@ const TABS = [
 
 export default function BottomTabBar({ theme = 'dark' }) {
   const isDark = theme === 'dark'
+  const location = useLocation()
+
+  // Calculate active index based on current location
+  const activeIndex = TABS.findIndex((tab) =>
+    tab.end ? location.pathname === tab.to : location.pathname.startsWith(tab.to)
+  )
+  const displayIndex = activeIndex >= 0 ? activeIndex : 0
 
   return (
     <div
@@ -92,19 +116,31 @@ export default function BottomTabBar({ theme = 'dark' }) {
     >
       <nav
         className={[
-          'flex items-center justify-around px-2 py-2 rounded-2xl',
+          'relative flex items-center justify-around px-2 py-2 rounded-2xl overflow-hidden',
           isDark
             ? 'bg-black/60 border border-white/10 backdrop-blur-xl'
             : 'bg-white/70 border border-black/8 backdrop-blur-xl',
         ].join(' ')}
       >
+        {/* Sliding bubble background */}
+        <div
+          className="absolute inset-y-[6px] rounded-[14px] pointer-events-none"
+          style={{
+            width: '22%',
+            left: `${displayIndex * 25 + 1.5}%`,
+            transition: 'left 500ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+            backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+          }}
+        />
+
         {TABS.map(({ label, to, end, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             end={end}
+            onClick={() => navigator.vibrate?.(10)}
             className={({ isActive }) => [
-              'flex flex-col items-center gap-[2px] flex-1 py-1 transition-colors',
+              'relative z-10 flex flex-col items-center gap-[2px] flex-1 py-1 transition-colors',
               isActive
                 ? isDark ? 'text-amber' : 'text-tarmac'
                 : isDark ? 'text-white/40' : 'text-black/30',
