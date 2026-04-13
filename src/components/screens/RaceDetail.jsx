@@ -26,7 +26,7 @@ import CountryFlag from '../ui/CountryFlag'
 import FlagRating from '../ui/FlagRating'
 import Toggle from '../ui/Toggle'
 import { useAuth } from '../../hooks/useAuth'
-import { useRaceResults, useSeasonDrivers } from '../../hooks/useSeasonData'
+import { useRaceResults } from '../../hooks/useSeasonData'
 import { useRaceLogs } from '../../hooks/useRaceLogs'
 import { useTheme } from '../../hooks/useTheme'
 
@@ -98,8 +98,7 @@ export default function RaceDetail() {
   const { theme }         = useTheme()
 
   const { race, loading: raceLoading }       = useRaceResults(season, round)
-  const { drivers }                           = useSeasonDrivers(season)
-  const { logs, saveLog }                     = useRaceLogs(user)
+const { logs, saveLog }                     = useRaceLogs(user)
 
   // Find existing log for this race
   const existingLog = logs.find(
@@ -168,10 +167,10 @@ export default function RaceDetail() {
   const circuitName = race?.Circuit?.circuitName ?? '—'
   const country     = race?.Circuit?.Location?.country ?? ''
 
-  // Driver options for DOTD select — sorted by surname
-  const driverOptions = [...drivers].sort((a, b) =>
-    a.familyName.localeCompare(b.familyName)
-  )
+  // Driver options for DOTD select — only drivers who raced this round, sorted by surname
+  const driverOptions = [...raceResults]
+    .map(r => r.Driver)
+    .sort((a, b) => a.familyName.localeCompare(b.familyName))
 
   return (
     <AppShell theme={theme} user={user} showNav={false}>
@@ -288,7 +287,11 @@ export default function RaceDetail() {
                 <select
                   value={dotd}
                   onChange={e => setDotd(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg bg-white/8 border border-white/10 text-white text-[14px] focus:outline-none focus:border-amber appearance-none"
+                  className={`w-full px-3 py-2.5 rounded-lg border text-[14px] focus:outline-none focus:border-amber appearance-none ${
+                    theme === 'dark'
+                      ? 'bg-tarmac text-concrete border-white/10'
+                      : 'bg-white text-tarmac border-black/10'
+                  }`}
                 >
                   <option value="">Select driver</option>
                   {driverOptions.map(d => (

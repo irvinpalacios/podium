@@ -38,8 +38,15 @@ export function useAuth() {
     return { error }
   }
 
-  async function signUp(email, password) {
-    const { error } = await supabase.auth.signUp({ email, password })
+  async function signUp(email, password, username) {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { username } },
+    })
+    if (error && error.message.toLowerCase().includes('already registered')) {
+      return { error: { message: 'An account with this email already exists. Try signing in.' } }
+    }
     return { error }
   }
 

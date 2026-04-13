@@ -5,10 +5,10 @@
  * Nav:   Seasons (active)
  *
  * Layout (top → bottom):
- *   <Header /> + <NavBar /> via AppShell
+ *   <Header /> via AppShell
  *   Season selector row — year + prev/next chevrons
  *   Progress row — amber bar + "X / Y logged" label
- *   2-column RaceCard grid
+ *   Vertical timeline of RaceCards, chronological
  */
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -20,8 +20,14 @@ import { useSeasonRaces } from '../../hooks/useSeasonData'
 import { useRaceLogs } from '../../hooks/useRaceLogs'
 import { useTheme } from '../../hooks/useTheme'
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function formatRaceDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00')
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
 // ─── Circuit sketch SVG ───────────────────────────────────────────────────────
-// Abstract lines only — no real circuit shape
 function CircuitSketch({ dimmed = false }) {
   return (
     <svg
@@ -45,8 +51,8 @@ function CircuitSketch({ dimmed = false }) {
 }
 
 // ─── RaceCard ─────────────────────────────────────────────────────────────────
-function RaceCard({ race, log, theme, onClick }) {
-  const isLogged  = !!log
+function RaceCard({ race, log, theme, isUpcoming, onClick }) {
+  const isLogged   = !!log
   const isFiveStar = log?.rating === 5
 
   // Background per state
@@ -55,6 +61,9 @@ function RaceCard({ race, log, theme, onClick }) {
     : isLogged
     ? theme === 'dark' ? 'bg-[#2A2A2A]' : 'bg-white'
     : theme === 'dark' ? 'bg-[#242424]' : 'bg-[#ECEAE4]'
+
+  // Upcoming unlogged race gets a faint amber ring
+  const ring = isUpcoming && !isLogged ? 'ring-1 ring-amber/30' : ''
 
   const country = race.Circuit?.Location?.country ?? ''
 
@@ -65,28 +74,20 @@ function RaceCard({ race, log, theme, onClick }) {
       className={[
         'relative w-full text-left rounded-xl p-3 flex flex-col gap-1 overflow-hidden',
         bg,
+        ring,
       ].join(' ')}
     >
       {/* Round number */}
-      <span
-        className={[
-          'text-[10px] font-medium',
-          theme === 'dark' ? 'text-gravel' : 'text-gravel',
-        ].join(' ')}
-      >
+      <span className="text-[10px] font-medium text-gravel">
         Round {race.round}
       </span>
 
       {/* Circuit sketch + flag row */}
-      <div className="flex items-center justify-between h-9">
+      <div className="flex items-center justify-between h-8">
         <div className="flex-1 h-full text-white">
           <CircuitSketch dimmed={!isLogged} />
         </div>
-        <CountryFlag
-          country={country}
-          size="sm"
-          dimmed={!isLogged}
-        />
+        <CountryFlag country={country} size="sm" dimmed={!isLogged} />
       </div>
 
       {/* Race name */}
@@ -102,8 +103,7 @@ function RaceCard({ race, log, theme, onClick }) {
       {/* Country */}
       <span
         className={[
-          'text-[11px]',
-          theme === 'dark' ? 'text-gravel' : 'text-gravel',
+          'text-[11px] text-gravel',
           !isLogged ? 'opacity-25' : '',
         ].join(' ')}
       >
@@ -135,9 +135,9 @@ const CURRENT_YEAR = new Date().getFullYear()
 const MIN_YEAR     = 2000
 
 export default function SeasonBrowser() {
-  const navigate          = useNavigate()
-  const { user }          = useAuth()
-  const { theme }         = useTheme()
+  const navigate        = useNavigate()
+  const { user }        = useAuth()
+  const { theme }       = useTheme()
 
   const [season, setSeason] = useState(CURRENT_YEAR)
 
@@ -157,6 +157,13 @@ export default function SeasonBrowser() {
   )
 
   const progress = races.length > 0 ? loggedCount / races.length : 0
+
+  // Index of the next upcoming race (first with date >= today)
+  const nextRoundIndex = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return races.findIndex(r => r.date && new Date(r.date + 'T00:00:00') >= today)
+  }, [races])
 
   function prevSeason() { if (season > MIN_YEAR) setSeason(s => s - 1) }
   function nextSeason() { if (season < CURRENT_YEAR) setSeason(s => s + 1) }
@@ -189,7 +196,7 @@ export default function SeasonBrowser() {
       </div>
 
       {/* Progress row */}
-      <div className="px-4 mb-3">
+      <div className="px-4 mb-4">
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-[11px] text-gravel">
             {loggedCount} / {races.length} logged
@@ -203,22 +210,72 @@ export default function SeasonBrowser() {
         </div>
       </div>
 
-      {/* Race grid */}
+      {/* Timeline */}
       {racesLoading ? (
         <div className="flex items-center justify-center py-16 text-[13px] text-gravel">
           Loading…
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-2 px-4 pb-6">
-          {races.map(race => (
-            <RaceCard
-              key={race.round}
-              race={race}
-              log={logMap[`${season}-${race.round}`] ?? null}
-              theme={theme}
-              onClick={() => navigate(`/race/${season}/${race.round}`)}
-            />
-          ))}
+        <div className="px-4 pb-6 flex flex-col">
+          {races.map((race, idx) => {
+            const log      = logMap[`${season}-${race.round}`] ?? null
+            const today    = new Date(); today.setHours(0, 0, 0, 0)
+            const raceDate = race.date ? new Date(race.date + 'T00:00:00') : null
+            const isUpcoming = idx === nextRoundIndex
+            const isPast     = raceDate ? raceDate < today : false
+            const locality   = race.Circuit?.Location?.locality ?? ''
+            const isLast     = idx === races.length - 1
+
+            const dotColor = isUpcoming
+              ? 'bg-amber'
+              : isPast
+                ? 'bg-gravel'
+                : theme === 'dark' ? 'bg-white/20' : 'bg-black/20'
+
+            return (
+              <div key={race.round} className="flex gap-3">
+                {/* Timeline spine */}
+                <div className="flex flex-col items-center pt-[3px]">
+                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
+                  {!isLast && (
+                    <div
+                      className={[
+                        'w-px flex-1 mt-1',
+                        theme === 'dark' ? 'bg-white/10' : 'bg-black/10',
+                      ].join(' ')}
+                    />
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 pb-5">
+                  {/* Date + locality */}
+                  <div className="flex items-center gap-1.5 mb-2">
+                    {race.date && (
+                      <span className="text-[11px] text-gravel">
+                        {formatRaceDate(race.date)}
+                      </span>
+                    )}
+                    {locality && (
+                      <>
+                        <span className="text-[11px] text-gravel/40">·</span>
+                        <span className="text-[11px] text-gravel">{locality}</span>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Race card — full width */}
+                  <RaceCard
+                    race={race}
+                    log={log}
+                    theme={theme}
+                    isUpcoming={isUpcoming}
+                    onClick={() => navigate(`/race/${season}/${race.round}`)}
+                  />
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
     </AppShell>

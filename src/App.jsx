@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import Home          from './components/screens/Home'
 import SeasonBrowser from './components/screens/SeasonBrowser'
 import RaceDetail    from './components/screens/RaceDetail'
 import Diary         from './components/screens/Diary'
@@ -19,7 +20,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Auth />} />
-        <Route path="/" element={<ProtectedRoute><SeasonBrowser /></ProtectedRoute>} />
+        <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/seasons" element={<ProtectedRoute><SeasonBrowser /></ProtectedRoute>} />
         <Route path="/race/:season/:round" element={<ProtectedRoute><RaceDetail /></ProtectedRoute>} />
         <Route path="/diary" element={<ProtectedRoute><Diary /></ProtectedRoute>} />
