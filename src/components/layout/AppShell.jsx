@@ -16,7 +16,7 @@
  *   children (ReactNode)
  */
 import Header from './Header'
-import NavBar from './NavBar'
+import BottomTabBar from './BottomTabBar'
 
 export default function AppShell({
   theme = 'dark',
@@ -32,10 +32,10 @@ export default function AppShell({
       ].join(' ')}
     >
       <Header theme={theme} user={user} />
-      {showNav && <NavBar theme={theme} />}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto pb-24">
         {children}
       </main>
+      {showNav && <BottomTabBar theme={theme} />}
     </div>
   )
 }

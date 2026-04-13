@@ -28,6 +28,7 @@ import Toggle from '../ui/Toggle'
 import { useAuth } from '../../hooks/useAuth'
 import { useRaceResults, useSeasonDrivers } from '../../hooks/useSeasonData'
 import { useRaceLogs } from '../../hooks/useRaceLogs'
+import { useTheme } from '../../hooks/useTheme'
 
 // ─── Abstract circuit line SVG ────────────────────────────────────────────────
 function CircuitLine() {
@@ -94,7 +95,7 @@ export default function RaceDetail() {
   const { season, round } = useParams()
   const navigate          = useNavigate()
   const { user }          = useAuth()
-  const theme             = 'dark'
+  const { theme }         = useTheme()
 
   const { race, loading: raceLoading }       = useRaceResults(season, round)
   const { drivers }                           = useSeasonDrivers(season)
@@ -173,7 +174,7 @@ export default function RaceDetail() {
   )
 
   return (
-    <AppShell theme={theme} user={user}>
+    <AppShell theme={theme} user={user} showNav={false}>
       <div className="px-4 pb-8">
 
         {/* Back button */}

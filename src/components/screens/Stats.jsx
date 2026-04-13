@@ -18,6 +18,7 @@ import AppShell from '../layout/AppShell'
 import { useAuth } from '../../hooks/useAuth'
 import { useRaceLogs } from '../../hooks/useRaceLogs'
 import { getSeasonRaces } from '../../utils/ergastApi'
+import { useTheme } from '../../hooks/useTheme'
 
 // ─── Stat card ────────────────────────────────────────────────────────────────
 function StatCard({ label, value, sub, theme }) {
@@ -48,7 +49,7 @@ function SectionLabel({ children }) {
 export default function Stats() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const theme = 'dark'
+  const { theme } = useTheme()
 
   const { logs, loading: logsLoading } = useRaceLogs(user)
 

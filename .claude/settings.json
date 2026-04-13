@@ -24,7 +24,15 @@
       "Bash(ls c:/Users/ipalacio/Documents/Projects/racingLetterboxApp/.env*)",
       "Read(//c/Users/ipalacio/.claude/**)",
       "Read(//c/Users/ipalacio/Projects/Codex Projects/**)",
-      "Edit(~/.claude/skills/optimize-claudemd/**)"
+      "Edit(~/.claude/skills/optimize-claudemd/**)",
+      "Bash(netlify --version)",
+      "Bash(npm list:*)",
+      "Bash(npx netlify:*)",
+      "Bash(/c/Users/ipalacio/AppData/Roaming/npm/netlify --version)",
+      "Bash(/c/Users/ipalacio/AppData/Roaming/npm/netlify login:*)",
+      "Bash(/c/Users/ipalacio/AppData/Roaming/npm/netlify env:set VITE_SUPABASE_URL \"https://hzzecysvwcplrmyavine.supabase.co\")",
+      "Bash(/c/Users/ipalacio/AppData/Roaming/npm/netlify env:set VITE_SUPABASE_ANON_KEY \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6emVjeXN2d2NwbHJteWF2aW5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjU1MzUsImV4cCI6MjA5MTYwMTUzNX0.zoqq62epQW05UJGURN-9CZVQVSHD-3biNspkmJTSMHQ\")",
+      "Bash(/c/Users/ipalacio/AppData/Roaming/npm/netlify deploy:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\ipalacio\\.claude\\projects\\c--Users-ipalacio-Documents-Projects-racingLetterboxApp\\memory",

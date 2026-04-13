@@ -17,6 +17,7 @@ import FlagRating from '../ui/FlagRating'
 import { useAuth } from '../../hooks/useAuth'
 import { useRaceLogs } from '../../hooks/useRaceLogs'
 import { getSeasonRaces } from '../../utils/ergastApi'
+import { useTheme } from '../../hooks/useTheme'
 
 // ─── Season divider ───────────────────────────────────────────────────────────
 function SeasonDivider({ year, count, theme }) {
@@ -148,7 +149,7 @@ function FilterPill({ label, active, theme, onClick }) {
 export default function Diary() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const theme = 'dark'
+  const { theme } = useTheme()
 
   const { logs, loading: logsLoading } = useRaceLogs(user)
 

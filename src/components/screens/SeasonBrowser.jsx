@@ -18,6 +18,7 @@ import FlagRating from '../ui/FlagRating'
 import { useAuth } from '../../hooks/useAuth'
 import { useSeasonRaces } from '../../hooks/useSeasonData'
 import { useRaceLogs } from '../../hooks/useRaceLogs'
+import { useTheme } from '../../hooks/useTheme'
 
 // ─── Circuit sketch SVG ───────────────────────────────────────────────────────
 // Abstract lines only — no real circuit shape
@@ -136,7 +137,7 @@ const MIN_YEAR     = 2000
 export default function SeasonBrowser() {
   const navigate          = useNavigate()
   const { user }          = useAuth()
-  const theme             = 'dark'
+  const { theme }         = useTheme()
 
   const [season, setSeason] = useState(CURRENT_YEAR)
 

@@ -1,58 +1,39 @@
-# Podium — CLAUDE.md
+# Podium
 
 ## Product
 
-**Name:** Podium — Your personal motorsport race log
+**Core object:** One Race log entry per Grand Prix — not per session, not per season.
 
-### Core object
-The **Race** is the primary unit. One log entry per Grand Prix. Not per session, not per season.
+**Log entry fields:** Rating (1–5 flags), Driver of the Day, Watched live or replay, Date logged
 
-### Race log entry fields
-- Rating (1–5 checkered flags)
-- Driver of the Day (from that race's grid)
-- Watched live or replay
-- Date logged
-
-### Explicitly cut from V1
-- Written reviews / notes
-- Rewatch count
-- Social feed
-- Live timing or telemetry
-- Other motorsport series in the UI
+**Out of scope for V1:** Written reviews/notes, rewatch count, social feed, live timing, other motorsport series, race data before 2000, push notifications, native app, revenue/paywall, admin dashboard, custom fonts, animations beyond Tailwind defaults
 
 ---
 
 ## Data
 
-**API:** `https://api.jolpi.ca/ergast/f1` — Jolpica (drop-in Ergast replacement; do not revert to ergast.com)
-**Scope:** 2000–current only. No data before 2000. No OpenF1, no live timing.
+**API:** `https://api.jolpi.ca/ergast/f1` — Jolpica; do not revert to ergast.com. Scope: 2000–current only.
 
-Country flags: `flag-icons` npm package keyed to ISO 3166-1 alpha-2. Mapping lives in `src/utils/countryFlags.js` — do not duplicate.
+Country flags: `flag-icons` package, ISO 3166-1 alpha-2. Mapping in `src/utils/countryFlags.js` — do not duplicate.
 
 ---
 
-## Tech Stack
+## Tech stack
 
-| Layer    | Choice                                       |
-|----------|----------------------------------------------|
-| Frontend | React + Vite                                 |
-| Styling  | Tailwind CSS — no component library          |
-| Database | Supabase (hosted, free tier)                 |
-| Auth     | Supabase Auth — email/password, max 3 users  |
-| Hosting  | Netlify                                      |
+| Layer    | Choice                                      |
+|----------|---------------------------------------------|
+| Frontend | React + Vite                                |
+| Styling  | Tailwind CSS — no component library         |
+| Database | Supabase (hosted, free tier)                |
+| Auth     | Supabase Auth — email/password, max 3 users |
+| Hosting  | Netlify                                     |
 
-### Tailwind design tokens
-
-```js
-// tailwind.config.js — colors
-tarmac: '#1E1E1E', amber: '#F0A500', concrete: '#F4F3EF', gravel: '#7A7672', gold: '#C9A84C'
-// Custom tracking tokens
-tracking-display: '-0.03em', tracking-heading: '-0.02em'
-```
-
+**Design tokens** (full source in `tailwind.config.js`):
+Colors: `tarmac` #1E1E1E · `amber` #F0A500 · `concrete` #F4F3EF · `gravel` #7A7672 · `gold` #C9A84C · `pebble` #C8C6C0 · `gold-deep` #7A5C1E
+Tracking: `tracking-display` -0.03em · `tracking-heading` -0.02em
 Typography: `font-normal` (400) and `font-medium` (500) only — never semibold or bold. Sentence case always.
 
-### Supabase schema
+**Supabase schema** (applied — `hzzecysvwcplrmyavine.supabase.co`):
 
 ```sql
 create table race_logs (
@@ -67,7 +48,6 @@ create table race_logs (
   logged_at timestamptz default now(),
   unique(user_id, series, season, round)
 );
-
 alter table race_logs enable row level security;
 create policy "Users manage own logs" on race_logs for all using (auth.uid() = user_id);
 ```
@@ -121,17 +101,6 @@ For screen layouts and component specs: @docs/screen-specs.md
 
 ---
 
-## Out of scope for V1
-- Written reviews / notes, social features, series other than F1 in the UI
-- Race data before 2000, push notifications, native app, revenue/paywall, admin dashboard
-- Rewatch tracking, custom fonts, animations beyond Tailwind defaults
-
----
-
 ## Build status
 
-All screens and components complete as of 2026-04-12.
-
-### Known gaps
-- [ ] `race_logs` table — run the schema SQL above in Supabase SQL editor (`hzzecysvwcplrmyavine.supabase.co`)
-- [ ] Auth guard — `App.jsx` has no protected routes; unauthenticated users can reach all screens; add `<ProtectedRoute>` wrapper
+All screens, components, and infrastructure complete. Deployed to https://podium-irvin.netlify.app.
