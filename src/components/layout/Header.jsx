@@ -11,6 +11,7 @@
  *   user  (object | null)    — Supabase user object; null on auth screens
  */
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Logo from '../ui/Logo'
 import Toggle from '../ui/Toggle'
 import { useAuth } from '../../hooks/useAuth'
@@ -18,6 +19,7 @@ import { useTheme } from '../../hooks/useTheme'
 import { useProfile } from '../../hooks/useProfile'
 
 export default function Header({ theme = 'dark', user = null }) {
+  const navigate = useNavigate()
   const { signOut } = useAuth()
   const { theme: globalTheme, toggleTheme } = useTheme()
   const { profile, saveDisplayName } = useProfile(user)
@@ -70,9 +72,11 @@ export default function Header({ theme = 'dark', user = null }) {
   return (
     <header className="flex items-center justify-between px-4 py-3">
       <div
+        onClick={user ? () => navigate('/') : undefined}
         className={[
           'flex items-center justify-center w-9 h-9 rounded-full border',
           theme === 'dark' ? 'border-white/20 bg-white/5' : 'border-black/12 bg-black/4',
+          user ? 'cursor-pointer' : '',
         ].join(' ')}
       >
         <Logo size={20} theme={theme} />

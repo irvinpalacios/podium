@@ -11,7 +11,7 @@
  *   Vertical timeline of RaceCards, chronological
  */
 import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import AppShell from '../layout/AppShell'
 import CountryFlag from '../ui/CountryFlag'
 import FlagRating from '../ui/FlagRating'
@@ -136,10 +136,11 @@ const MIN_YEAR     = 2000
 
 export default function SeasonBrowser() {
   const navigate        = useNavigate()
+  const location        = useLocation()
   const { user }        = useAuth()
   const { theme }       = useTheme()
 
-  const [season, setSeason] = useState(CURRENT_YEAR)
+  const [season, setSeason] = useState(location.state?.season ?? CURRENT_YEAR)
 
   const { races, loading: racesLoading } = useSeasonRaces(season)
   const { logs }                          = useRaceLogs(user)

@@ -29,6 +29,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useRaceResults } from '../../hooks/useSeasonData'
 import { useRaceLogs } from '../../hooks/useRaceLogs'
 import { useTheme } from '../../hooks/useTheme'
+import { getRatingLabel } from '../../utils/ratingLabels'
 
 // ─── Abstract circuit line SVG ────────────────────────────────────────────────
 function CircuitLine() {
@@ -179,7 +180,7 @@ const { logs, saveLog }                     = useRaceLogs(user)
         {/* Back button */}
         <button
           type="button"
-          onClick={() => navigate(`/${season}`)}
+          onClick={() => navigate('/seasons', { state: { season: parseInt(season) } })}
           className="flex items-center gap-1 text-[13px] text-gravel mt-1 mb-4 -ml-1 px-1"
         >
           <span className="text-[16px] leading-none">‹</span>
@@ -247,7 +248,12 @@ const { logs, saveLog }                     = useRaceLogs(user)
           {/* ── Read state ──────────────────────────────────────────────── */}
           {!editing && (
             <div className="flex flex-col gap-4">
-              <FlagRating rating={rating} size="md" />
+              <div className="flex flex-col gap-1">
+                <FlagRating rating={rating} size="md" />
+                {getRatingLabel(rating) && (
+                  <span className="text-[13px] text-gravel">{getRatingLabel(rating)}</span>
+                )}
+              </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-[13px] text-gravel">Driver of the day</span>
@@ -274,12 +280,17 @@ const { logs, saveLog }                     = useRaceLogs(user)
           {/* ── Edit state ──────────────────────────────────────────────── */}
           {editing && (
             <div className="flex flex-col gap-5">
-              <FlagRating
-                rating={rating}
-                size="lg"
-                interactive
-                onChange={setRating}
-              />
+              <div className="flex flex-col gap-1">
+                <FlagRating
+                  rating={rating}
+                  size="lg"
+                  interactive
+                  onChange={setRating}
+                />
+                <span className="text-[13px] text-gravel min-h-[20px]">
+                  {getRatingLabel(rating)}
+                </span>
+              </div>
 
               {/* DOTD select */}
               <div className="flex flex-col gap-1.5">
