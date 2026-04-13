@@ -1,0 +1,18 @@
+# Build output
+dist/
+
+# Dependencies
+node_modules/
+
+# Static assets — binary files Claude can't use
+src/assets/
+public/
+
+# Lock files — large, not useful for context
+package-lock.json
+
+# Claude Code skills config — not project code
+skills/
+
+# Secrets
+.env

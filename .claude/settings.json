@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"/c/Program Files/nodejs/npm.cmd\" --version)",
+      "Bash(\"/c/Program Files/nodejs/npm.cmd\" create vite@latest . -- --template react)",
+      "Bash(\"/c/Program Files/nodejs/npm.cmd\" create vite@latest . -- --template react --overwrite)",
+      "Bash(\"/c/Program Files/nodejs/npm.cmd\" install @supabase/supabase-js flag-icons react-router-dom)",
+      "Bash(\"/c/Program Files/nodejs/npm.cmd\" install -D tailwindcss postcss autoprefixer)",
+      "Bash(\"/c/Program Files/nodejs/npx.cmd\" tailwindcss init -p)",
+      "Bash(\"/c/Program Files/nodejs/npm.cmd\" exec -- tailwindcss init -p)",
+      "Bash(\"/c/Program Files/nodejs/node.exe\" ./node_modules/.bin/tailwindcss init -p)",
+      "Bash(\"/c/Program Files/nodejs/node.exe\" ./node_modules/tailwindcss/lib/cli.js init -p)",
+      "Bash(\"/c/Program Files/nodejs/node.exe\" -e \"const p = require\\('./node_modules/tailwindcss/package.json'\\); console.log\\(p.version\\);\")",
+      "Bash(\"/c/Program Files/nodejs/npm.cmd\" install -D tailwindcss@3 postcss autoprefixer)",
+      "Bash(\"/c/Program Files/nodejs/npm.cmd\" run build)",
+      "Bash(\"/c/Program Files/nodejs/npm.cmd\" run dev)",
+      "Bash(\"/c/Program Files/nodejs/node.exe\" -e \"require\\('fs'\\).unlinkSync\\('src/CheckeredFlagTest.jsx'\\); console.log\\('deleted'\\)\")",
+      "Bash(\"/c/Program Files/nodejs/node.exe\" -e \"require\\('fs'\\).unlinkSync\\('src/FlagRatingTest.jsx'\\); console.log\\('deleted'\\)\")",
+      "Bash(\"/c/Program Files/nodejs/node.exe\" -e \"require\\('fs'\\).unlinkSync\\('src/CountryFlagTest.jsx'\\); console.log\\('deleted'\\)\")",
+      "Bash(\"/c/Program Files/nodejs/node.exe\" -e \"require\\('fs'\\).unlinkSync\\('src/ToggleTest.jsx'\\); console.log\\('deleted'\\)\")",
+      "Bash(\"/c/Program Files/nodejs/node.exe\" -e \"require\\('fs'\\).unlinkSync\\('src/LogoTest.jsx'\\); console.log\\('deleted'\\)\")",
+      "Read(//c/Users/ipalacio/.claude/projects/c--Users-ipalacio-Documents-Projects-racingLetterboxApp/memory/**)",
+      "Bash(ls c:/Users/ipalacio/Documents/Projects/racingLetterboxApp/*.env*)",
+      "Bash(ls c:/Users/ipalacio/Documents/Projects/racingLetterboxApp/.env*)",
+      "Read(//c/Users/ipalacio/.claude/**)",
+      "Read(//c/Users/ipalacio/Projects/Codex Projects/**)",
+      "Edit(~/.claude/skills/optimize-claudemd/**)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\ipalacio\\.claude\\projects\\c--Users-ipalacio-Documents-Projects-racingLetterboxApp\\memory",
+      "C:\\Users\\ipalacio\\.claude\\skills"
+    ]
+  }
+}
