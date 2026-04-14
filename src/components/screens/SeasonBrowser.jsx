@@ -21,8 +21,38 @@ import { useSeasonRaces } from '../../hooks/useSeasonData'
 import { useRaceLogs } from '../../hooks/useRaceLogs'
 import { useTheme } from '../../hooks/useTheme'
 import { SUGGESTED_RACES } from '../../data/suggestedRaces'
+import { COUNTRY_TO_ISO } from '../../utils/countryFlags'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+// Country flag colors for ambient orbs
+const COUNTRY_THEMES = {
+  au: { primary: '#1B4F8A', secondary: '#CC2329' },
+  jp: { primary: '#BC002D', secondary: '#9B0023' },
+  cn: { primary: '#DE2910', secondary: '#FFDE00' },
+  us: { primary: '#002868', secondary: '#BF0A30' },
+  it: { primary: '#009246', secondary: '#CE2B37' },
+  mc: { primary: '#CE1126', secondary: '#CE1126' },
+  ca: { primary: '#FF0000', secondary: '#CC0000' },
+  es: { primary: '#AA151B', secondary: '#F1BF00' },
+  at: { primary: '#ED2939', secondary: '#C8102E' },
+  gb: { primary: '#012169', secondary: '#C8102E' },
+  hu: { primary: '#CE2939', secondary: '#436F4D' },
+  be: { primary: '#FAD20A', secondary: '#EF3340' },
+  nl: { primary: '#AE1C28', secondary: '#003082' },
+  sg: { primary: '#EF3340', secondary: '#C8102E' },
+  mx: { primary: '#006847', secondary: '#CE1126' },
+  br: { primary: '#009C3B', secondary: '#FFDF00' },
+  ae: { primary: '#00732F', secondary: '#FF0000' },
+  az: { primary: '#0092BC', secondary: '#EF3340' },
+  fr: { primary: '#002395', secondary: '#ED2939' },
+  de: { primary: '#FFCE00', secondary: '#DD0000' },
+  pt: { primary: '#006600', secondary: '#FF0000' },
+  qa: { primary: '#8D1B3D', secondary: '#6B1530' },
+  bh: { primary: '#CE1126', secondary: '#9B0023' },
+  sa: { primary: '#006C35', secondary: '#004D26' },
+  default: { primary: '#3A3A3A', secondary: '#2A2A2A' },
+}
 
 function formatRaceDate(dateStr) {
   const d = new Date(dateStr + 'T00:00:00')
@@ -122,6 +152,11 @@ function RaceCard({ race, log, theme, isUpcoming, onClick, showPulse = false }) 
 
   const country = race.Circuit?.Location?.country ?? ''
 
+  // Country-themed ambient orbs
+  const isoCode = COUNTRY_TO_ISO[country]
+  const countryTheme = COUNTRY_THEMES[isoCode] || COUNTRY_THEMES.default
+  const orbOpacity = isFiveStar ? 0.70 : isLogged ? 0.50 : 0.18
+
   return (
     <button
       type="button"
@@ -133,55 +168,57 @@ function RaceCard({ race, log, theme, isUpcoming, onClick, showPulse = false }) 
         ring,
       ].join(' ')}
     >
-      {/* Round number */}
-      <span className="text-[10px] font-medium text-gravel">
-        Round {race.round}
-      </span>
+      {/* Country-themed ambient color orbs */}
+      <div
+        className="absolute -top-8 -right-8 w-28 h-28 rounded-full blur-[40px] pointer-events-none transition-opacity duration-300"
+        style={{ backgroundColor: countryTheme.primary, opacity: orbOpacity }}
+      />
+      <div
+        className="absolute -bottom-8 -left-8 w-28 h-28 rounded-full blur-[40px] pointer-events-none transition-opacity duration-300"
+        style={{ backgroundColor: countryTheme.secondary, opacity: orbOpacity * 0.85 }}
+      />
+      {/* Frosted overlay keeps text legible over the orbs */}
+      <div className="absolute inset-0 bg-black/15 pointer-events-none" />
 
-      {/* Circuit sketch + flag row */}
-      <div className="flex items-center justify-between h-8">
-        <div className="flex-1 h-full text-white">
-          <CircuitSketch dimmed={!isLogged} />
+      {/* All card content wrapped in z-10 */}
+      <div className="relative z-10 flex flex-col gap-1">
+        {/* Round number */}
+        <span className="text-[10px] font-medium text-gravel">
+          Round {race.round}
+        </span>
+
+        {/* Circuit sketch + flag row */}
+        <div className="flex items-center justify-between h-8">
+          <div className="flex-1 h-full text-white">
+            <CircuitSketch dimmed={!isLogged} />
+          </div>
+          <CountryFlag country={country} size="sm" dimmed={!isLogged} />
         </div>
-        <CountryFlag country={country} size="sm" dimmed={!isLogged} />
-      </div>
 
-      {/* Race name */}
-      <span
-        className={[
-          'text-[13px] font-medium leading-tight',
-          !isLogged ? 'opacity-25' : '',
-        ].join(' ')}
-      >
-        {race.raceName}
-      </span>
+        {/* Race name */}
+        <span
+          className={[
+            'text-[13px] font-medium leading-tight',
+            !isLogged ? 'opacity-25' : '',
+          ].join(' ')}
+        >
+          {race.raceName}
+        </span>
 
-      {/* Country */}
-      <span
-        className={[
-          'text-[11px] text-gravel',
-          !isLogged ? 'opacity-25' : '',
-        ].join(' ')}
-      >
-        {country}
-      </span>
+        {/* Country */}
+        <span
+          className={[
+            'text-[11px] text-gravel',
+            !isLogged ? 'opacity-25' : '',
+          ].join(' ')}
+        >
+          {country}
+        </span>
 
-      {/* Bottom row: FlagRating left, + icon right when unlogged */}
-      <div className="flex items-center justify-between mt-1">
-        <FlagRating rating={log?.rating ?? null} size="sm" />
-        {!isLogged && (
-          <span
-            className={[
-              'flex items-center justify-center w-[18px] h-[18px] rounded-full border text-[12px] leading-none transition-colors duration-150',
-              theme === 'dark'
-                ? 'border-white/20 text-white/30 group-hover:border-amber/40 group-hover:text-amber/50'
-                : 'border-black/15 text-black/25 group-hover:border-amber/50 group-hover:text-amber/60',
-              showPulse ? 'animate-pulse' : '',
-            ].join(' ')}
-          >
-            +
-          </span>
-        )}
+        {/* Bottom row: FlagRating left */}
+        <div className="flex items-center justify-between mt-1">
+          <FlagRating rating={log?.rating ?? null} size="sm" />
+        </div>
       </div>
     </button>
   )

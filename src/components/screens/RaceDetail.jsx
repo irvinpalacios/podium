@@ -114,6 +114,7 @@ const { logs, saveLog }                     = useRaceLogs(user)
   const [rating, setRating]             = useState(null)
   const [dotd, setDotd]                 = useState('')
   const [watchedLive, setWatchedLive]   = useState(false)
+  const [notes, setNotes]               = useState('')
   const [saving, setSaving]             = useState(false)
   const [saveError, setSaveError]       = useState(null)
   const [showToast, setShowToast]       = useState(false)
@@ -125,11 +126,13 @@ const { logs, saveLog }                     = useRaceLogs(user)
       setRating(existingLog.rating)
       setDotd(existingLog.driver_of_the_day ?? '')
       setWatchedLive(existingLog.watched_live ?? false)
+      setNotes(existingLog.notes ?? '')
       setEditing(false)
     } else {
       setRating(null)
       setDotd('')
       setWatchedLive(false)
+      setNotes('')
       setEditing(true)
     }
   }, [existingLog?.id]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -139,6 +142,7 @@ const { logs, saveLog }                     = useRaceLogs(user)
       setRating(existingLog.rating)
       setDotd(existingLog.driver_of_the_day ?? '')
       setWatchedLive(existingLog.watched_live ?? false)
+      setNotes(existingLog.notes ?? '')
     }
     setEditing(false)
   }
@@ -153,6 +157,7 @@ const { logs, saveLog }                     = useRaceLogs(user)
       rating,
       driver_of_the_day: dotd || null,
       watched_live: watchedLive,
+      notes: notes || null,
     })
     setSaving(false)
     if (error) {
@@ -261,81 +266,108 @@ const { logs, saveLog }                     = useRaceLogs(user)
 
           {/* ── Read state ──────────────────────────────────────────────── */}
           {!editing && (
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <FlagRating rating={rating} size="md" />
-                {getRatingLabel(rating) && (
-                  <span className="text-[13px] text-gravel">{getRatingLabel(rating)}</span>
-                )}
-              </div>
+            <div className={`rounded-xl p-4 ${theme === 'dark' ? 'bg-[#2A2A2A]' : 'bg-white'}`}>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1">
+                  <FlagRating rating={rating} size="md" />
+                  {getRatingLabel(rating) && (
+                    <span className="text-[13px] text-gravel">{getRatingLabel(rating)}</span>
+                  )}
+                </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-[13px] text-gravel">Driver of the day</span>
-                <span className="text-[13px] font-medium">
-                  {dotd || <span className="text-gravel">—</span>}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-[13px] text-gravel">Watched</span>
-                {watchedLive ? (
-                  <span className="text-[12px] font-medium text-amber bg-amber/15 rounded-full px-2.5 py-0.5">
-                    Live
-                  </span>
-                ) : (
-                  <span className="text-[12px] font-medium text-gravel bg-white/8 rounded-full px-2.5 py-0.5">
-                    Replay
-                  </span>
+                {notes && (
+                  <p className={`text-[13px] ${theme === 'dark' ? 'text-concrete/80' : 'text-tarmac/80'}`}>
+                    {notes}
+                  </p>
                 )}
+
+                {notes && <div className="border-b border-white/8" />}
+
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-gravel">Driver of the day</span>
+                  <span className="text-[13px] font-medium">
+                    {dotd || <span className="text-gravel">—</span>}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-gravel">Watched</span>
+                  {watchedLive ? (
+                    <span className="text-[12px] font-medium text-amber bg-amber/15 rounded-full px-2.5 py-0.5">
+                      Live
+                    </span>
+                  ) : (
+                    <span className="text-[12px] font-medium text-gravel bg-white/8 rounded-full px-2.5 py-0.5">
+                      Replay
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           )}
 
           {/* ── Edit state ──────────────────────────────────────────────── */}
           {editing && (
-            <div className="flex flex-col gap-5">
-              <div className="flex flex-col gap-1">
-                <FlagRating
-                  rating={rating}
-                  size="lg"
-                  interactive
-                  onChange={setRating}
-                />
-                <span className="text-[13px] text-gravel min-h-[20px]">
-                  {getRatingLabel(rating)}
-                </span>
-              </div>
+            <>
+              <div className={`rounded-xl p-4 ${theme === 'dark' ? 'bg-[#2A2A2A]' : 'bg-white'} mb-4`}>
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-1">
+                    <FlagRating
+                      rating={rating}
+                      size="lg"
+                      interactive
+                      onChange={setRating}
+                    />
+                    <span className="text-[13px] text-gravel min-h-[20px]">
+                      {getRatingLabel(rating)}
+                    </span>
+                  </div>
 
-              {/* DOTD select */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] text-gravel">Driver of the day</label>
-                <select
-                  value={dotd}
-                  onChange={e => setDotd(e.target.value)}
-                  className={`w-full px-3 py-2.5 rounded-lg border text-[14px] focus:outline-none focus:border-amber appearance-none ${
-                    theme === 'dark'
-                      ? 'bg-tarmac text-concrete border-white/10'
-                      : 'bg-white text-tarmac border-black/10'
-                  }`}
-                >
-                  <option value="">Select driver</option>
-                  {driverOptions.map(d => (
-                    <option key={d.driverId} value={`${d.givenName} ${d.familyName}`}>
-                      {d.givenName} {d.familyName}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  {/* Notes textarea */}
+                  <textarea
+                    value={notes}
+                    onChange={e => setNotes(e.target.value)}
+                    placeholder="Add a note…"
+                    rows={3}
+                    className={`w-full px-3 py-2.5 rounded-lg border text-[14px] focus:outline-none focus:border-amber resize-none ${
+                      theme === 'dark'
+                        ? 'bg-tarmac text-concrete border-white/10'
+                        : 'bg-white text-tarmac border-black/10'
+                    }`}
+                  />
 
-              {/* Watched live toggle */}
-              <div className="flex items-center justify-between">
-                <span className="text-[13px] text-gravel">Watched live</span>
-                <Toggle checked={watchedLive} onChange={setWatchedLive} />
+                  {/* DOTD select */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[11px] text-gravel">Driver of the day</label>
+                    <select
+                      value={dotd}
+                      onChange={e => setDotd(e.target.value)}
+                      className={`w-full px-3 py-2.5 rounded-lg border text-[14px] focus:outline-none focus:border-amber appearance-none ${
+                        theme === 'dark'
+                          ? 'bg-tarmac text-concrete border-white/10'
+                          : 'bg-white text-tarmac border-black/10'
+                      }`}
+                    >
+                      <option value="">Select driver</option>
+                      {driverOptions.map(d => (
+                        <option key={d.driverId} value={`${d.givenName} ${d.familyName}`}>
+                          {d.givenName} {d.familyName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Watched live toggle */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-[13px] text-gravel">Watched live</span>
+                    <Toggle checked={watchedLive} onChange={setWatchedLive} />
+                  </div>
+                </div>
               </div>
 
               {/* Error */}
               {saveError && (
-                <p className="text-[12px] text-red-400">{saveError}</p>
+                <p className="text-[12px] text-red-400 mb-4">{saveError}</p>
               )}
 
               {/* CTA */}
@@ -347,7 +379,7 @@ const { logs, saveLog }                     = useRaceLogs(user)
               >
                 {saving ? 'Saving…' : isLogged ? 'Save changes' : 'Save log'}
               </button>
-            </div>
+            </>
           )}
         </div>
       </div>

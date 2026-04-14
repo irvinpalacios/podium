@@ -13,7 +13,7 @@
  *   deleteLog (id)         => Promise<{ error }>   remove a log entry
  *
  * RaceLog shape mirrors the schema:
- *   { id, user_id, series, season, round, rating, driver_of_the_day, watched_live, logged_at }
+ *   { id, user_id, series, season, round, rating, driver_of_the_day, watched_live, notes, logged_at }
  */
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../utils/supabaseClient'
@@ -49,14 +49,14 @@ export function useRaceLogs(user) {
    * Upsert a log entry. Caller provides all writable fields.
    * `series` is always included; defaults to 'f1'.
    *
-   * @param {{ series?, season, round, rating, driver_of_the_day, watched_live }} payload
+   * @param {{ series?, season, round, rating, driver_of_the_day, watched_live, notes }} payload
    * @returns {Promise<{ error }>}
    */
-  async function saveLog({ series = 'f1', season, round, rating, driver_of_the_day, watched_live }) {
+  async function saveLog({ series = 'f1', season, round, rating, driver_of_the_day, watched_live, notes }) {
     const { error: upsertError } = await supabase
       .from('race_logs')
       .upsert(
-        { user_id: user.id, series, season, round, rating, driver_of_the_day, watched_live },
+        { user_id: user.id, series, season, round, rating, driver_of_the_day, watched_live, notes: notes ?? null },
         { onConflict: 'user_id,series,season,round' }
       )
 

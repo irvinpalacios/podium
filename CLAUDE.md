@@ -4,9 +4,9 @@
 
 **Core object:** One Race log entry per Grand Prix — not per session, not per season.
 
-**Log entry fields:** Rating (1–5 flags), Driver of the Day, Watched live or replay, Date logged
+**Log entry fields:** Rating (1–5 flags), Driver of the Day, Watched live or replay, Notes, Date logged
 
-**Out of scope for V1:** Written reviews/notes, rewatch count, social feed, live timing, other motorsport series, race data before 2000, push notifications, native app, revenue/paywall, admin dashboard, custom fonts, animations beyond Tailwind defaults
+**Out of scope for V1:** Rewatch count, social feed, live timing, other motorsport series, race data before 2000, push notifications, native app, revenue/paywall, admin dashboard, custom fonts
 
 ---
 
@@ -45,6 +45,7 @@ create table race_logs (
   rating int check (rating between 1 and 5),
   driver_of_the_day text,
   watched_live boolean default false,
+  notes text,
   logged_at timestamptz default now(),
   unique(user_id, series, season, round)
 );

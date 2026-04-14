@@ -90,6 +90,11 @@ function DiaryEntry({ log, race, theme, onClick }) {
           <p className="text-[11px] text-gravel mt-0.5">{formattedDate}</p>
         )}
 
+        {/* Notes */}
+        {log.notes && (
+          <p className="text-[11px] text-gravel line-clamp-1 mt-0.5">{log.notes}</p>
+        )}
+
         {/* FlagRating */}
         <div className="mt-2">
           <FlagRating rating={log.rating} size="sm" />
