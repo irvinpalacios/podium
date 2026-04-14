@@ -6,6 +6,7 @@ import SeasonBrowser from './components/screens/SeasonBrowser'
 import RaceDetail    from './components/screens/RaceDetail'
 import Diary         from './components/screens/Diary'
 import Stats         from './components/screens/Stats'
+import Profile       from './components/screens/Profile'
 import Auth          from './components/screens/Auth'
 import SplashScreen  from './components/ui/SplashScreen'
 import { useAuth }   from './hooks/useAuth'
@@ -34,6 +35,7 @@ export default function App() {
               <Route path="/race/:season/:round" element={<ProtectedRoute><RaceDetail /></ProtectedRoute>} />
               <Route path="/diary" element={<ProtectedRoute><Diary /></ProtectedRoute>} />
               <Route path="/stats" element={<ProtectedRoute><Stats /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>

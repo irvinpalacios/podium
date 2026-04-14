@@ -6,15 +6,18 @@
  *   - Hero card: next upcoming race (or last race when season is over)
  *   - Community feed: recent ratings + comments from all users
  */
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../layout/AppShell'
 import CountryFlag from '../ui/CountryFlag'
 import FlagRating from '../ui/FlagRating'
+import CheckeredFlag from '../ui/CheckeredFlag'
 import { useAuth } from '../../hooks/useAuth'
 import { useTheme } from '../../hooks/useTheme'
 import { useProfile } from '../../hooks/useProfile'
 import { useUpcomingRace } from '../../hooks/useUpcomingRace'
 import { useCommunityFeed } from '../../hooks/useCommunityFeed'
+import { supabase } from '../../utils/supabaseClient'
 
 // ---------------------------------------------------------------------------
 // Date helpers
@@ -54,8 +57,42 @@ function formatRelativeTime(timestamp) {
 // Activity feed item
 // ---------------------------------------------------------------------------
 
-function ActivityItem({ item, theme }) {
+function ActivityItem({ item, theme, user }) {
   const initial = item.displayName?.[0]?.toUpperCase() ?? '?'
+  const [flagged, setFlagged]     = useState(item.flaggedByMe)
+  const [flagCount, setFlagCount] = useState(item.flagCount)
+  const [toggling, setToggling]   = useState(false)
+
+  async function handleFlagToggle() {
+    if (toggling) return
+    const next = !flagged
+    // Optimistic update
+    setFlagged(next)
+    setFlagCount(c => c + (next ? 1 : -1))
+    setToggling(true)
+
+    try {
+      if (next) {
+        await supabase.from('activity_reactions').insert({
+          user_id:       user.id,
+          activity_type: item.type,
+          activity_id:   item.id,
+        })
+      } else {
+        await supabase.from('activity_reactions')
+          .delete()
+          .eq('user_id',       user.id)
+          .eq('activity_type', item.type)
+          .eq('activity_id',   item.id)
+      }
+    } catch {
+      // Revert on error
+      setFlagged(flagged)
+      setFlagCount(c => c + (next ? -1 : 1))
+    } finally {
+      setToggling(false)
+    }
+  }
 
   return (
     <div className="flex items-start gap-3">
@@ -94,9 +131,31 @@ function ActivityItem({ item, theme }) {
           </p>
         )}
 
-        <p className="text-[10px] text-gravel mt-0.5">
-          {formatRelativeTime(item.timestamp)}
-        </p>
+        <div className="flex items-center justify-between mt-0.5">
+          <p className="text-[10px] text-gravel">
+            {formatRelativeTime(item.timestamp)}
+          </p>
+
+          <button
+            type="button"
+            onClick={handleFlagToggle}
+            disabled={toggling}
+            className="flex items-center gap-1 -mr-0.5 py-0.5 px-1 rounded active:opacity-60 transition-opacity"
+            aria-label={flagged ? 'Remove flag' : 'Flag this'}
+          >
+            <CheckeredFlag size={12} filled={flagged} />
+            {flagCount > 0 && (
+              <span className={[
+                'text-[10px] font-normal',
+                flagged
+                  ? 'text-pebble dark:text-pebble'
+                  : 'text-gravel',
+              ].join(' ')}>
+                {flagCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -251,7 +310,7 @@ export default function Home() {
           ) : (
             <div className="space-y-4">
               {activities.map(item => (
-                <ActivityItem key={`${item.type}-${item.id}`} item={item} theme={theme} />
+                <ActivityItem key={`${item.type}-${item.id}`} item={item} theme={theme} user={user} />
               ))}
             </div>
           )}

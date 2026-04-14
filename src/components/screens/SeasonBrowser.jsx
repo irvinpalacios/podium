@@ -25,6 +25,39 @@ import { COUNTRY_TO_ISO } from '../../utils/countryFlags'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+// Alternative UI: Year pill selector (for reference - can be swapped in)
+function YearPillSelector({ season, setSeason, theme }) {
+  // Show last 7 years + current, or fewer if before 2007
+  const years = Array.from({ length: Math.min(8, CURRENT_YEAR - MIN_YEAR + 1) }, (_, i) => CURRENT_YEAR - i)
+
+  return (
+    <div className="px-4 py-3">
+      <p className="text-[11px] text-gravel mb-2">season</p>
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 [&::-webkit-scrollbar]:hidden">
+        {years.map(year => (
+          <button
+            key={year}
+            type="button"
+            onClick={() => setSeason(year)}
+            className={[
+              'flex-shrink-0 text-[12px] px-3 py-1.5 rounded-full transition-colors',
+              season === year
+                ? theme === 'dark'
+                  ? 'bg-amber text-tarmac font-medium'
+                  : 'bg-tarmac text-white font-medium'
+                : theme === 'dark'
+                ? 'bg-white/10 text-white/50'
+                : 'bg-black/8 text-black/40',
+            ].join(' ')}
+          >
+            {year}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // Country flag colors for ambient orbs
 const COUNTRY_THEMES = {
   au: { primary: '#1B4F8A', secondary: '#CC2329' },
@@ -287,34 +320,28 @@ export default function SeasonBrowser() {
   // Index of first unlogged race for pulse indicator
   const firstUnloggedIndex = races.findIndex(r => !logMap[`${season}-${r.round}`])
 
-  function prevSeason() { if (season > MIN_YEAR) setSeason(s => s - 1) }
-  function nextSeason() { if (season < CURRENT_YEAR) setSeason(s => s + 1) }
-
   return (
     <AppShell theme={theme} user={user}>
-      {/* Season selector */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <button
-          type="button"
-          onClick={prevSeason}
-          disabled={season <= MIN_YEAR}
-          aria-label="Previous season"
-          className="text-white/40 disabled:opacity-20 text-[18px] leading-none px-1"
+      {/* Season selector - Version 1: Select dropdown (DOTD style) */}
+      <div className="px-4 py-3">
+        <label className="text-[11px] text-gravel mb-2 block">Season</label>
+        <select
+          value={season}
+          onChange={(e) => setSeason(parseInt(e.target.value, 10))}
+          className={`w-full px-3 py-2.5 rounded-lg border text-[14px] focus:outline-none focus:border-amber appearance-none cursor-pointer ${
+            theme === 'dark'
+              ? 'bg-tarmac text-concrete border-white/10'
+              : 'bg-white text-tarmac border-black/10'
+          }`}
         >
-          ‹
-        </button>
-        <span className="text-[22px] font-medium tracking-display">
-          {season}
-        </span>
-        <button
-          type="button"
-          onClick={nextSeason}
-          disabled={season >= CURRENT_YEAR}
-          aria-label="Next season"
-          className="text-white/40 disabled:opacity-20 text-[18px] leading-none px-1"
-        >
-          ›
-        </button>
+          {Array.from({ length: CURRENT_YEAR - MIN_YEAR + 1 }, (_, i) => CURRENT_YEAR - i).map(
+            (year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            )
+          )}
+        </select>
       </div>
 
       {/* Progress row */}
@@ -333,7 +360,7 @@ export default function SeasonBrowser() {
       </div>
 
       {/* Suggested races + empty state hint (first-time users) */}
-      {logs.length === 0 && !logsLoading && (
+      {user && logs.length === 0 && !logsLoading && (
         <>
           <SuggestedRacesStrip
             theme={theme}

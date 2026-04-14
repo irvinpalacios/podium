@@ -203,7 +203,7 @@ const { logs, saveLog }                     = useRaceLogs(user)
           className="flex items-center gap-1 text-[13px] text-gravel mt-1 mb-4 -ml-1 px-1"
         >
           <span className="text-[16px] leading-none">‹</span>
-          {season}
+          Season {season}
         </button>
 
         {/* Round badge + flag */}
@@ -324,17 +324,23 @@ const { logs, saveLog }                     = useRaceLogs(user)
                   </div>
 
                   {/* Notes textarea */}
-                  <textarea
-                    value={notes}
-                    onChange={e => setNotes(e.target.value)}
-                    placeholder="Add a note…"
-                    rows={3}
-                    className={`w-full px-3 py-2.5 rounded-lg border text-[14px] focus:outline-none focus:border-amber resize-none ${
-                      theme === 'dark'
-                        ? 'bg-tarmac text-concrete border-white/10'
-                        : 'bg-white text-tarmac border-black/10'
-                    }`}
-                  />
+                  <div className="flex flex-col gap-1">
+                    <textarea
+                      value={notes}
+                      onChange={e => setNotes(e.target.value)}
+                      placeholder="Add a note…"
+                      rows={3}
+                      maxLength="500"
+                      className={`w-full px-3 py-2.5 rounded-lg border text-[14px] focus:outline-none focus:border-amber resize-none ${
+                        theme === 'dark'
+                          ? 'bg-tarmac text-concrete border-white/10'
+                          : 'bg-white text-tarmac border-black/10'
+                      }`}
+                    />
+                    <span className="text-[11px] text-gravel text-right">
+                      {notes.length} / 500 characters
+                    </span>
+                  </div>
 
                   {/* DOTD select */}
                   <div className="flex flex-col gap-1.5">

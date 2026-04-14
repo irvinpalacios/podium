@@ -57,3 +57,15 @@ export async function getSeasonDrivers(year, series = 'f1') {
   const data = await fetchJson(`${BASE_URL}/${year}/drivers.json?limit=40`)
   return data.MRData.DriverTable.Drivers
 }
+
+/**
+ * Fetch the full constructor list for a given season.
+ *
+ * @param {number|string} year
+ * @param {string}        [series='f1']
+ * @returns {Promise<Constructor[]>} Array of Ergast Constructor objects
+ */
+export async function getSeasonConstructors(year, series = 'f1') {
+  const data = await fetchJson(`${BASE_URL}/${year}/constructors.json?limit=30`)
+  return data.MRData.ConstructorTable.Constructors
+}

@@ -100,7 +100,7 @@ function DiaryEntry({ log, race, theme, onClick }) {
           <FlagRating rating={log.rating} size="sm" />
         </div>
 
-        {/* Meta row: DOTD pill + live indicator */}
+        {/* Meta row: DOTD pill + live/replay pill */}
         <div className="flex items-center gap-2 mt-1.5">
           {log.driver_of_the_day && (
             <span
@@ -114,14 +114,21 @@ function DiaryEntry({ log, race, theme, onClick }) {
               {log.driver_of_the_day}
             </span>
           )}
-          {/* Live/replay dot */}
+          {/* Live/replay pill */}
           <span
             className={[
-              'w-[6px] h-[6px] rounded-full flex-shrink-0',
-              log.watched_live ? 'bg-amber' : 'bg-white/20',
+              'text-[10px] px-1.5 py-0.5 rounded',
+              log.watched_live
+                ? theme === 'dark'
+                  ? 'bg-amber text-tarmac'
+                  : 'bg-amber text-white'
+                : theme === 'dark'
+                ? 'bg-white/10 text-white/60'
+                : 'bg-black/8 text-black/50',
             ].join(' ')}
-            title={log.watched_live ? 'Watched live' : 'Watched replay'}
-          />
+          >
+            {log.watched_live ? 'Live' : 'Replay'}
+          </span>
         </div>
       </div>
     </button>

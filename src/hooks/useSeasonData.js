@@ -11,7 +11,7 @@
  *   const { drivers, loading, error } = useSeasonDrivers(year)
  */
 import { useState, useEffect } from 'react'
-import { getSeasons, getSeasonRaces, getRaceResults, getSeasonDrivers } from '../utils/ergastApi'
+import { getSeasons, getSeasonRaces, getRaceResults, getSeasonDrivers, getSeasonConstructors } from '../utils/ergastApi'
 
 export function useSeasonData() {
   const [seasons, setSeasons] = useState([])
@@ -89,4 +89,24 @@ export function useSeasonDrivers(year, series = 'f1') {
   }, [year, series])
 
   return { drivers, loading, error }
+}
+
+export function useSeasonConstructors(year, series = 'f1') {
+  const [constructors, setConstructors] = useState([])
+  const [loading, setLoading]           = useState(true)
+  const [error, setError]               = useState(null)
+
+  useEffect(() => {
+    if (!year) return
+    let cancelled = false
+    setLoading(true)
+    setConstructors([])
+    getSeasonConstructors(year, series)
+      .then(data => { if (!cancelled) setConstructors(data) })
+      .catch(err  => { if (!cancelled) setError(err) })
+      .finally(()  => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [year, series])
+
+  return { constructors, loading, error }
 }

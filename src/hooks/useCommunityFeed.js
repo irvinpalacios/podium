@@ -4,6 +4,7 @@
  * Fetches recent activity from all users:
  *   - race_logs  (requires "Race logs readable by authenticated users" RLS policy)
  *   - comments   (requires "Comments readable by authenticated users" RLS policy)
+ *   - activity_reactions (fetched to provide counts and flagged state)
  *
  * Resolves display names via the `profiles` table and race names via Ergast.
  * Merges both streams, sorts by timestamp descending.
@@ -16,7 +17,7 @@
  *
  * Activity shape:
  *   { type: 'log'|'comment', id, displayName, season, round, raceName,
- *     rating?, watchedLive?, text?, timestamp }
+ *     rating?, watchedLive?, text?, timestamp, flagCount, flaggedByMe }
  */
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../utils/supabaseClient'
@@ -130,7 +131,29 @@ export function useCommunityFeed(user) {
         })),
       ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
 
-      setActivities(merged)
+      // Fetch reactions for all visible activities
+      const allIds = merged.map(a => a.id)
+      const { data: reactions } = await supabase
+        .from('activity_reactions')
+        .select('activity_id, activity_type, user_id')
+        .in('activity_id', allIds)
+
+      const flagCountMap = {}        // `${type}-${id}` → count
+      const myFlagSet    = new Set() // keys flagged by the current user
+      ;(reactions ?? []).forEach(r => {
+        const key = `${r.activity_type}-${r.activity_id}`
+        flagCountMap[key] = (flagCountMap[key] ?? 0) + 1
+        if (r.user_id === user.id) myFlagSet.add(key)
+      })
+
+      // Attach reaction state to each activity
+      const withReactions = merged.map(a => ({
+        ...a,
+        flagCount:  flagCountMap[`${a.type}-${a.id}`] ?? 0,
+        flaggedByMe: myFlagSet.has(`${a.type}-${a.id}`),
+      }))
+
+      setActivities(withReactions)
     } catch (err) {
       setError(err)
     } finally {

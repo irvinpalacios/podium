@@ -25,44 +25,15 @@ export default function Header({ theme = 'dark', user = null }) {
   const navigate = useNavigate()
   const { signOut } = useAuth()
   const { theme: globalTheme, toggleTheme } = useTheme()
-  const { profile, saveDisplayName } = useProfile(user)
+  const { profile } = useProfile(user)
   const initial = user?.email?.[0]?.toUpperCase() ?? null
   const [open, setOpen] = useState(false)
-  const [editingName, setEditingName] = useState(false)
-  const [nameInput, setNameInput] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const wrapperRef = useRef(null)
-  const nameInputRef = useRef(null)
-  const savingRef = useRef(false)
 
   // Search feature hooks
   const { logs, loading: logsLoading } = useRaceLogs(user)
   const { allRaces, loading: searchLoading } = useSearchData({ logs, logsLoading })
-
-  // Sync input value when profile loads or dropdown opens
-  useEffect(() => {
-    if (open && profile) setNameInput(profile.display_name)
-  }, [open, profile])
-
-  // Focus the input when edit mode activates
-  useEffect(() => {
-    if (editingName) nameInputRef.current?.focus()
-  }, [editingName])
-
-  async function commitName() {
-    // Guard against double-fire from onKeyDown(Enter) + onBlur racing each other
-    if (savingRef.current) return
-    savingRef.current = true
-    try {
-      const trimmed = nameInput.trim()
-      if (trimmed && trimmed !== profile?.display_name) {
-        await saveDisplayName(trimmed)
-      }
-      setEditingName(false)
-    } finally {
-      savingRef.current = false
-    }
-  }
 
   // Close on outside click
   useEffect(() => {
@@ -70,7 +41,6 @@ export default function Header({ theme = 'dark', user = null }) {
     function handleClick(e) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
         setOpen(false)
-        setEditingName(false)
       }
     }
     document.addEventListener('mousedown', handleClick)
@@ -154,52 +124,30 @@ export default function Header({ theme = 'dark', user = null }) {
                 {user.email}
               </div>
 
-              {/* Display name row */}
-              <div className={[
-                'flex items-center justify-between px-3 py-2.5 border-b',
-                theme === 'dark' ? 'border-white/10' : 'border-black/8',
-              ].join(' ')}>
-                {editingName ? (
-                  <input
-                    ref={nameInputRef}
-                    type="text"
-                    value={nameInput}
-                    onChange={e => setNameInput(e.target.value)}
-                    onBlur={commitName}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') { e.preventDefault(); commitName() }
-                      if (e.key === 'Escape') setEditingName(false)
-                    }}
-                    maxLength={32}
-                    className={[
-                      'flex-1 text-[13px] font-medium bg-transparent outline-none border-b',
-                      theme === 'dark'
-                        ? 'text-white border-white/20'
-                        : 'text-tarmac border-black/20',
-                    ].join(' ')}
-                  />
-                ) : (
-                  <>
-                    <span className={[
-                      'text-[13px] font-medium truncate',
-                      theme === 'dark' ? 'text-white/70' : 'text-tarmac/70',
-                    ].join(' ')}>
-                      {profile?.display_name ?? user.email.split('@')[0]}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setEditingName(true)}
-                      className={[
-                        'ml-2 flex-shrink-0 text-[10px] font-medium transition-opacity hover:opacity-100 opacity-50',
-                        theme === 'dark' ? 'text-white' : 'text-tarmac',
-                      ].join(' ')}
-                      aria-label="Edit display name"
-                    >
-                      Edit
-                    </button>
-                  </>
-                )}
-              </div>
+              {/* Profile link */}
+              <button
+                type="button"
+                onClick={() => { setOpen(false); navigate('/profile') }}
+                className={[
+                  'w-full flex items-center justify-between px-3 py-2.5 border-b text-left transition-colors',
+                  theme === 'dark'
+                    ? 'border-white/10 hover:bg-white/8'
+                    : 'border-black/8 hover:bg-black/5',
+                ].join(' ')}
+              >
+                <span className={[
+                  'text-[13px] font-medium truncate',
+                  theme === 'dark' ? 'text-white/70' : 'text-tarmac/70',
+                ].join(' ')}>
+                  {profile?.display_name ?? user.email.split('@')[0]}
+                </span>
+                <span className={[
+                  'ml-2 flex-shrink-0 text-[10px] font-medium transition-opacity opacity-50 hover:opacity-100',
+                  theme === 'dark' ? 'text-white' : 'text-tarmac',
+                ].join(' ')}>
+                  Edit profile
+                </span>
+              </button>
 
               {/* Light mode toggle */}
               <div className={[
